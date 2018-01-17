@@ -37,11 +37,11 @@ namespace PopulationStratifiedSampling
             return new Tuple<int, int>(index1D / _cellCountY, index1D % _cellCountY);
         }
 
-        private void GetRandomPopulationDensities(out SortedDictionary<int, int> cellIndexToPopulationDensity,
-            out SortedDictionary<int, int> cellIndexToInfectedCounts)
+        private void GetRandomPopulationDensities(out Dictionary<int, int> cellIndexToPopulationDensity,
+            out Dictionary<int, int> cellIndexToInfectedCounts)
         {
-            cellIndexToPopulationDensity = new SortedDictionary<int, int>();
-            cellIndexToInfectedCounts = new SortedDictionary<int, int>();
+            cellIndexToPopulationDensity = new Dictionary<int, int>();
+            cellIndexToInfectedCounts = new Dictionary<int, int>();
 
             if (!int.TryParse(cmbMaxGlobalPopulationDensity.Text, out int maxGlobalPopulationDensity))
                 maxGlobalPopulationDensity = DefaultGlobalPopulationDensity;
@@ -85,8 +85,8 @@ namespace PopulationStratifiedSampling
             _cellCount = _cellCountX * _cellCountY;
 
             // Get random population densities for a grid
-            GetRandomPopulationDensities(out SortedDictionary<int, int> cellIndexToPopulationDensity,
-                out SortedDictionary<int, int> cellIndexToInfectedCounts);
+            GetRandomPopulationDensities(out Dictionary<int, int> cellIndexToPopulationDensity,
+                out Dictionary<int, int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
 
@@ -134,11 +134,11 @@ namespace PopulationStratifiedSampling
             tpbProgress.Value = tpbProgress.Maximum;
         }
 
-        private SortedDictionary<int, int> StratumCellIndexToPopulationDensity(SortedDictionary<int,
+        private Dictionary<int, int> StratumCellIndexToPopulationDensity(Dictionary<int,
             int> cellIndexToPopulationDensity, KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum)
         {
-            SortedDictionary<int, int> currentCellIndexToPopulationDensity =
-                new SortedDictionary<int, int>();
+            Dictionary<int, int> currentCellIndexToPopulationDensity =
+                new Dictionary<int, int>();
 
             int minX = currentStratum.Key.Item1.Item1;
             int minY = currentStratum.Key.Item1.Item2;
@@ -157,10 +157,10 @@ namespace PopulationStratifiedSampling
         }
 
         private void SampleStratifiedPopulation(
-            SortedDictionary<int, int> cellIndexToInfectedCounts,
+            Dictionary<int, int> cellIndexToInfectedCounts,
             Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
-            SortedDictionary<int, int> currentCellIndexToPopulationDensity,
-            SortedDictionary<int, int> cellIndexToPopulationDensity, int sampleSize)
+            Dictionary<int, int> currentCellIndexToPopulationDensity,
+            Dictionary<int, int> cellIndexToPopulationDensity, int sampleSize)
         {
             // Progressively accumulate the total population densities in a series -> grid index
             Dictionary<int, int> cumulativePopulationDensitiesToCellIndex =
@@ -249,8 +249,8 @@ namespace PopulationStratifiedSampling
             }
        }
 
-        private void PrintShowResults(SortedDictionary<int, int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
-            SortedDictionary<int, int> cellIndexToPopulationDensity, int maxPopulationDensity,
+        private void PrintShowResults(Dictionary<int, int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
+            Dictionary<int, int> cellIndexToPopulationDensity, int maxPopulationDensity,
             Dictionary<Tuple<Tuple<int, int>, Tuple<int, int>>, int> strataBoundingBoxesToSampleCount)
         {
             // Write results to png
@@ -397,7 +397,7 @@ namespace PopulationStratifiedSampling
         }
 
         private static Dictionary<int, int> CumulativePopulationDensitiesToCellIndex(
-            SortedDictionary<int, int> cellIndexToPopulationDensity)
+            Dictionary<int, int> cellIndexToPopulationDensity)
         {
             Dictionary<int, int> cumulativePopulationDensitiesToCellIndex = new Dictionary<int, int>();
             int populationDensitiesSum = 0;
