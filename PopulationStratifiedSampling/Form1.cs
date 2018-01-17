@@ -37,8 +37,7 @@ namespace PopulationStratifiedSampling
             return new Tuple<int, int>(index1D / _cellCountY, index1D % _cellCountY);
         }
 
-        private void GetRandomPopulationDensities(int cellCountX, int cellCountY,
-            out SortedDictionary<int, int> cellIndexToPopulationDensity,
+        private void GetRandomPopulationDensities(out SortedDictionary<int, int> cellIndexToPopulationDensity,
             out SortedDictionary<int, int> cellIndexToInfectedCounts)
         {
             cellIndexToPopulationDensity = new SortedDictionary<int, int>();
@@ -62,11 +61,6 @@ namespace PopulationStratifiedSampling
             // Get random population densities for a grid
             for (int index = 0; index < _cellCount; index++)
             {
-                int x = Get2DIndex(index).Item1;
-                int y = Get2DIndex(index).Item2;
-
-                Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
-                    
                 int randomPopulationDensity = _random.Next(DefaultMinPopulationDensity, 
                     _random.NextDouble() < maxLocalPopulationDensitySamplingProbability 
                         ? maxLocalPopulationDensity : maxGlobalPopulationDensity);
@@ -91,8 +85,7 @@ namespace PopulationStratifiedSampling
             _cellCount = _cellCountX * _cellCountY;
 
             // Get random population densities for a grid
-            GetRandomPopulationDensities(_cellCountX, _cellCountY, 
-                out SortedDictionary<int, int> cellIndexToPopulationDensity,
+            GetRandomPopulationDensities(out SortedDictionary<int, int> cellIndexToPopulationDensity,
                 out SortedDictionary<int, int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
@@ -113,11 +106,8 @@ namespace PopulationStratifiedSampling
             dgvStrata.Rows.Clear();
             foreach (KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> keyValuePair in strataBoundingBoxesToSampleCount)
             {
-                dgvStrata.Rows.Add(new Object[]
-                {
-                    keyValuePair.Key.Item1.Item1, keyValuePair.Key.Item1.Item2, keyValuePair.Key.Item2.Item1,
-                    keyValuePair.Key.Item2.Item2, keyValuePair.Value
-                });
+                dgvStrata.Rows.Add(keyValuePair.Key.Item1.Item1, keyValuePair.Key.Item1.Item2, keyValuePair.Key.Item2.Item1, 
+                    keyValuePair.Key.Item2.Item2, keyValuePair.Value);
             }
 
             tpbProgress.PerformStep();
@@ -131,7 +121,6 @@ namespace PopulationStratifiedSampling
 
                 SampleStratifiedPopulation(cellIndexToInfectedCounts,
                     currentStratum.Key,
-                    _cellCountX, _cellCountY,
                     currentCellIndexToPopulationDensity,
                     cellIndexToPopulationDensity,
                     currentStratum.Value);
@@ -140,7 +129,7 @@ namespace PopulationStratifiedSampling
             tpbProgress.PerformStep();
 
             PrintShowResults(cellIndexToInfectedCounts, _cellCountX, _cellCountY, cellIndexToPopulationDensity,
-                (int)cellIndexToPopulationDensity.Values.Max(), strataBoundingBoxesToSampleCount);
+                cellIndexToPopulationDensity.Values.Max(), strataBoundingBoxesToSampleCount);
             
             watch.Stop();
             tlbExecutionTime.Text = watch.ElapsedMilliseconds.ToString();
@@ -172,7 +161,7 @@ namespace PopulationStratifiedSampling
 
         private void SampleStratifiedPopulation(
             SortedDictionary<int, int> cellIndexToInfectedCounts,
-            Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,int cellCountX, int cellCountY,
+            Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
             SortedDictionary<int, int> currentCellIndexToPopulationDensity,
             SortedDictionary<int, int> cellIndexToPopulationDensity, int sampleSize)
         {
@@ -328,7 +317,7 @@ namespace PopulationStratifiedSampling
                             int y = Get2DIndex(index).Item2;
 
                             Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
-                            int colorIntensity = 255 - (int) (255 * (double) cellIndexToPopulationDensity[index] / (double) maxPopulationDensity);
+                            int colorIntensity = 255 - (int) (255 * (double) cellIndexToPopulationDensity[index] / maxPopulationDensity);
                             Color c = Color.FromArgb(colorIntensity, colorIntensity, 255);
 
                             if (cellIndexToPopulationDensity[index] > 0)
@@ -421,7 +410,7 @@ namespace PopulationStratifiedSampling
             int populationDensitiesSum = 0;
             foreach (KeyValuePair<int, int> keyValuePair in cellIndexToPopulationDensity)
             {
-                int densityValue = (int) keyValuePair.Value;
+                int densityValue = keyValuePair.Value;
                 if (densityValue > 0)
                 {
                     populationDensitiesSum += densityValue;
