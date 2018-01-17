@@ -111,11 +111,8 @@ namespace PopulationStratifiedSampling
             }
 
             tpbProgress.PerformStep();
-
-            // TODO: use 1D for 2D array addressing
-
-            foreach (KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum in
-                strataBoundingBoxesToSampleCount)
+            
+            foreach (KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum in strataBoundingBoxesToSampleCount)
             {
                 var currentCellIndexToPopulationDensity = StratumCellIndexToPopulationDensity(cellIndexToPopulationDensity, currentStratum);
 
@@ -213,14 +210,14 @@ namespace PopulationStratifiedSampling
             {
                 for (int i = 0; i < sampleSize; i++)
                 {
-                    int randomX = _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item1);
-                    int randomY = _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item2);
-                    Tuple<int, int> cellIndex = new Tuple<int, int>(randomX, randomY);
+                    int cellIndex = Get1DIndex(new Tuple<int, int>(
+                        _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item1),
+                        _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item2)));
 
-                    if (cellIndexToInfectedCounts.ContainsKey(Get1DIndex(cellIndex)))
-                        cellIndexToInfectedCounts[Get1DIndex(cellIndex)]++;
+                    if (cellIndexToInfectedCounts.ContainsKey(cellIndex))
+                        cellIndexToInfectedCounts[cellIndex]++;
                     else
-                        cellIndexToInfectedCounts[Get1DIndex(cellIndex)] = 1;
+                        cellIndexToInfectedCounts[cellIndex] = 1;
                 }
             }
 
@@ -293,9 +290,7 @@ namespace PopulationStratifiedSampling
                     Controls.Add(pictureBox2);
                     ((System.ComponentModel.ISupportInitialize) (pictureBox2)).EndInit();
                 }
-
                 
-
                 if (File.Exists(@"populationDensity.png"))
                     File.Delete(@"populationDensity.png");
                 if (File.Exists(@"infectedSamples.png"))
@@ -315,8 +310,7 @@ namespace PopulationStratifiedSampling
                         {
                             int x = Get2DIndex(index).Item1;
                             int y = Get2DIndex(index).Item2;
-
-                            Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
+                            
                             int colorIntensity = 255 - (int) (255 * (double) cellIndexToPopulationDensity[index] / maxPopulationDensity);
                             Color c = Color.FromArgb(colorIntensity, colorIntensity, 255);
 
@@ -331,12 +325,12 @@ namespace PopulationStratifiedSampling
                                 int minY = strataBoundingBox.Item1.Item2 - 1;
                                 int maxY = strataBoundingBox.Item2.Item2 + 1;
 
-                                if (cellIndex.Item1 == minX || cellIndex.Item1 == maxX)
-                                    if (cellIndex.Item2 >= minY && cellIndex.Item2 <= maxY)
+                                if (x == minX || x == maxX)
+                                    if (y >= minY && y <= maxY)
                                         b.SetPixel(x, y, Color.Black); // Black
 
-                                if (cellIndex.Item2 == minY || cellIndex.Item2 == maxY)
-                                    if (cellIndex.Item1 >= minX && cellIndex.Item1 <= maxX)
+                                if (y == minY || y == maxY)
+                                    if (x >= minX && x <= maxX)
                                         b.SetPixel(x, y, Color.Black); // Black
                             }
                             
@@ -358,7 +352,6 @@ namespace PopulationStratifiedSampling
                         {
                             int x = Get2DIndex(index).Item1;
                             int y = Get2DIndex(index).Item2;
-                            Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
                             int colorIntensity = 255 - (int) (255 * cellIndexToInfectedCounts[index]
                                                                 / (double) maxInfectedCounts);
                             Color c = Color.FromArgb(255, colorIntensity, colorIntensity);
@@ -374,12 +367,12 @@ namespace PopulationStratifiedSampling
                                 int minY = strataBoundingBox.Item1.Item2 - 1;
                                 int maxY = strataBoundingBox.Item2.Item2 + 1;
                                     
-                                if (cellIndex.Item1 == minX || cellIndex.Item1 == maxX)
-                                    if (cellIndex.Item2 >= minY && cellIndex.Item2 <= maxY)
+                                if (x == minX || x == maxX)
+                                    if (y >= minY && y <= maxY)
                                         b.SetPixel(x, y, Color.Black); // Black
 
-                                if (cellIndex.Item2 == minY || cellIndex.Item2 == maxY)
-                                    if (cellIndex.Item1 >= minX && cellIndex.Item1 <= maxX)
+                                if (y == minY || y == maxY)
+                                    if (x >= minX && x <= maxX)
                                         b.SetPixel(x, y, Color.Black); // Black
                             }
                             
