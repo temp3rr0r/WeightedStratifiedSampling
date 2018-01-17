@@ -38,10 +38,10 @@ namespace PopulationStratifiedSampling
         }
 
         private void GetRandomPopulationDensities(int cellCountX, int cellCountY,
-            out SortedDictionary<Tuple<int, int>, int> cellIndexToPopulationDensity,
+            out SortedDictionary<int, int> cellIndexToPopulationDensity,
             out SortedDictionary<Tuple<int, int>, int> cellIndexToInfectedCounts)
         {
-            cellIndexToPopulationDensity = new SortedDictionary<Tuple<int, int>, int>();
+            cellIndexToPopulationDensity = new SortedDictionary<int, int>();
             cellIndexToInfectedCounts = new SortedDictionary<Tuple<int, int>, int>();
 
             if (!int.TryParse(cmbMaxGlobalPopulationDensity.Text, out int maxGlobalPopulationDensity))
@@ -71,7 +71,7 @@ namespace PopulationStratifiedSampling
                     _random.NextDouble() < maxLocalPopulationDensitySamplingProbability 
                         ? maxLocalPopulationDensity : maxGlobalPopulationDensity);
 
-                cellIndexToPopulationDensity[cellIndex] = randomPopulationDensity;
+                cellIndexToPopulationDensity[index] = randomPopulationDensity;
                 cellIndexToInfectedCounts[cellIndex] = 0;
             }
         }
@@ -92,7 +92,7 @@ namespace PopulationStratifiedSampling
 
             // Get random population densities for a grid
             GetRandomPopulationDensities(_cellCountX, _cellCountY, 
-                out SortedDictionary<Tuple<int, int>, int> cellIndexToPopulationDensity,
+                out SortedDictionary<int, int> cellIndexToPopulationDensity,
                 out SortedDictionary<Tuple<int, int>, int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
@@ -148,7 +148,7 @@ namespace PopulationStratifiedSampling
             tpbProgress.Value = tpbProgress.Maximum;
         }
 
-        private static SortedDictionary<Tuple<int, int>, int> StratumCellIndexToPopulationDensity(SortedDictionary<Tuple<int, int>,
+        private SortedDictionary<Tuple<int, int>, int> StratumCellIndexToPopulationDensity(SortedDictionary<int,
             int> cellIndexToPopulationDensity, KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum)
         {
             SortedDictionary<Tuple<int, int>, int> currentCellIndexToPopulationDensity =
@@ -163,7 +163,7 @@ namespace PopulationStratifiedSampling
                 for (int y = minY; y < maxY; y++)
                 {
                     Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
-                    int currentPopulationDensity = cellIndexToPopulationDensity[cellIndex];
+                    int currentPopulationDensity = cellIndexToPopulationDensity[Get1DIndex(cellIndex)];
                     currentCellIndexToPopulationDensity[cellIndex] = currentPopulationDensity;
                 }
             }
@@ -174,7 +174,7 @@ namespace PopulationStratifiedSampling
             SortedDictionary<Tuple<int, int>, int> cellIndexToInfectedCounts,
             Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,int cellCountX, int cellCountY,
             SortedDictionary<Tuple<int, int>, int> currentCellIndexToPopulationDensity,
-            SortedDictionary<Tuple<int, int>, int> cellIndexToPopulationDensity, int sampleSize)
+            SortedDictionary<int, int> cellIndexToPopulationDensity, int sampleSize)
         {
             // Progressively accumulate the total population densities in a series -> grid index
             Dictionary<int, Tuple<int, int>> cumulativePopulationDensitiesToCellIndex =
@@ -243,20 +243,19 @@ namespace PopulationStratifiedSampling
             {
                 txtSamples.Clear();
                 int sumSamples = 0;
-                for (int x = 0; x < cellCountX; x++)
+                for (int index = 0; index < _cellCount; index++)
                 {
-                    for (int y = 0; y < cellCountY; y++)
+                    int x = Get2DIndex(index).Item1;
+                    int y = Get2DIndex(index).Item2;
+                    int currentSamples = cellIndexToInfectedCounts[Get2DIndex(index)];
+                    if (currentSamples > 0 || (x >= minX && x < maxX && y >= minY && y < maxY ))
                     {
-                        Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
-                        int currentSamples = cellIndexToInfectedCounts[cellIndex];
-                        if (currentSamples > 0 || (x >= minX && x < maxX && y >= minY && y < maxY ))
-                        {
-                            sumSamples += currentSamples;
-                            txtSamples.AppendText($"[{cellIndex.Item1}, " +
-                                                  $"{cellIndex.Item2}]: {currentSamples} samples" +
-                                                  $" (Population Density: {cellIndexToPopulationDensity[cellIndex]})\r\n");
-                        }
+                        sumSamples += currentSamples;
+                        txtSamples.AppendText($"[{x}, " +
+                                                $"{y}]: {currentSamples} samples" +
+                                                $" (Population Density: {cellIndexToPopulationDensity[index]})\r\n");
                     }
+                    
                 }
 
                 txtSamples.AppendText($"\r\nTotal Samples: {sumSamples}");
@@ -264,7 +263,7 @@ namespace PopulationStratifiedSampling
        }
 
         private void PrintShowResults(SortedDictionary<Tuple<int, int>, int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
-            SortedDictionary<Tuple<int, int>, int> cellIndexToPopulationDensity, int maxPopulationDensity,
+            SortedDictionary<int, int> cellIndexToPopulationDensity, int maxPopulationDensity,
             Dictionary<Tuple<Tuple<int, int>, Tuple<int, int>>, int> strataBoundingBoxesToSampleCount)
         {
             // Write results to png
@@ -328,10 +327,10 @@ namespace PopulationStratifiedSampling
                             int y = Get2DIndex(index).Item2;
 
                             Tuple<int, int> cellIndex = new Tuple<int, int>(x, y);
-                            int colorIntensity = 255 - (int) (255 * (double) cellIndexToPopulationDensity[cellIndex] / (double) maxPopulationDensity);
+                            int colorIntensity = 255 - (int) (255 * (double) cellIndexToPopulationDensity[index] / (double) maxPopulationDensity);
                             Color c = Color.FromArgb(colorIntensity, colorIntensity, 255);
 
-                            if (cellIndexToPopulationDensity[cellIndex] > 0)
+                            if (cellIndexToPopulationDensity[index] > 0)
                                 b.SetPixel(x, y, c);
 
                             // Draw black outlines of strata, on infected
