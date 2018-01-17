@@ -14,6 +14,9 @@ namespace PopulationStratifiedSampling
         private readonly Random _random = new Random();
         private const int DefaultCellCountX = 20;
         private const int DefaultCellCountY = 20;
+        private int _cellCountX = DefaultCellCountX;
+        private int _cellCountY = DefaultCellCountY;
+        private int _cellCount = DefaultCellCountX * DefaultCellCountY;
         private const int DefaultMinPopulationDensity = 0;
         private const int DefaultLocalPopulationDensity = 100;
         private const int DefaultGlobalPopulationDensity = 25;
@@ -22,6 +25,16 @@ namespace PopulationStratifiedSampling
         public Form1()
         {
             InitializeComponent();
+        }
+
+        private int get1DIndex(Tuple<int, int> index2D)
+        {
+            return index2D.Item1 * _cellCountX + index2D.Item2;
+        }
+
+        private Tuple<int, int> get2DIndex(int index1D)
+        {
+            return new Tuple<int, int>(index1D / _cellCountX, index1D % _cellCountX);
         }
 
         private void GetRandomPopulationDensities(int cellCountX, int cellCountY,
@@ -65,18 +78,20 @@ namespace PopulationStratifiedSampling
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // TODO: progress
             tpbProgress.Value = tpbProgress.Minimum;
             Stopwatch watch = Stopwatch.StartNew();
             ttxStatus.Text = @"Working...";
-
-            if (!int.TryParse(cmbCellCountX.Text, out int cellCountX))
-                cellCountX = DefaultCellCountX;
-            if (!int.TryParse(cmbCellCountY.Text, out int cellCountY))
-                cellCountY = DefaultCellCountY;
+            
+            if (!int.TryParse(cmbCellCountX.Text, out _cellCountX))
+                if (_cellCountX < 0)
+                    _cellCountX = DefaultCellCountX;
+            if (!int.TryParse(cmbCellCountY.Text, out _cellCountY))
+                if (_cellCountY < 0)
+                    _cellCountY = DefaultCellCountY;
+            _cellCount = _cellCountX * _cellCountY;
 
             // Get random population densities for a grid
-            GetRandomPopulationDensities(cellCountX, cellCountY, 
+            GetRandomPopulationDensities(_cellCountX, _cellCountY, 
                 out SortedDictionary<Tuple<int, int>, double> cellIndexToPopulationDensity,
                 out SortedDictionary<Tuple<int, int>, int> cellIndexToInfectedCounts);
 
@@ -116,7 +131,7 @@ namespace PopulationStratifiedSampling
 
                 SampleStratifiedPopulation(cellIndexToInfectedCounts,
                     currentStratum.Key,
-                    cellCountX, cellCountY,
+                    _cellCountX, _cellCountY,
                     currentCellIndexToPopulationDensity,
                     cellIndexToPopulationDensity,
                     currentStratum.Value);
@@ -124,7 +139,7 @@ namespace PopulationStratifiedSampling
 
             tpbProgress.PerformStep();
 
-            PrintShowResults(cellIndexToInfectedCounts, cellCountX, cellCountY, cellIndexToPopulationDensity,
+            PrintShowResults(cellIndexToInfectedCounts, _cellCountX, _cellCountY, cellIndexToPopulationDensity,
                 (int)cellIndexToPopulationDensity.Values.Max(), strataBoundingBoxesToSampleCount);
             
             watch.Stop();
