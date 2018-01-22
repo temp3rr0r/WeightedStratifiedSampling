@@ -167,7 +167,7 @@
             this.cmbCellCountX.Name = "cmbCellCountX";
             this.cmbCellCountX.Size = new System.Drawing.Size(54, 21);
             this.cmbCellCountX.TabIndex = 9;
-            this.cmbCellCountX.Text = "20";
+            this.cmbCellCountX.Text = "40";
             // 
             // cmbCellCountY
             // 
@@ -181,7 +181,7 @@
             this.cmbCellCountY.Name = "cmbCellCountY";
             this.cmbCellCountY.Size = new System.Drawing.Size(54, 21);
             this.cmbCellCountY.TabIndex = 11;
-            this.cmbCellCountY.Text = "20";
+            this.cmbCellCountY.Text = "40";
             // 
             // label5
             // 

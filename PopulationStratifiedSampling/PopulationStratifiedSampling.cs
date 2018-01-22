@@ -86,8 +86,7 @@ namespace PopulationStratifiedSampling
             _cellCount = _cellCountX * _cellCountY;
 
             // Get random population densities for a grid
-            GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity,
-                out List<int> cellIndexToInfectedCounts);
+            GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity, out List<int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
 
@@ -151,6 +150,7 @@ namespace PopulationStratifiedSampling
                     currentCellIndexToPopulationDensity[Get1DIndex(cellIndex)] = currentPopulationDensity;
                 }
             }
+
             return currentCellIndexToPopulationDensity;
         }
 
@@ -380,8 +380,7 @@ namespace PopulationStratifiedSampling
             }
         }
 
-        private static Dictionary<int, int> CumulativePopulationDensitiesToCellIndex(
-            Dictionary<int, int> cellIndexToPopulationDensity)
+        private static Dictionary<int, int> CumulativePopulationDensitiesToCellIndex(Dictionary<int, int> cellIndexToPopulationDensity)
         {
             Dictionary<int, int> cumulativePopulationDensitiesToCellIndex = new Dictionary<int, int>();
             int populationDensitiesSum = 0;
