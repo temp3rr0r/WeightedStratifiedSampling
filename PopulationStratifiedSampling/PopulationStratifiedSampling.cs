@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace PopulationStratifiedSampling
 {
-    public partial class Form1 : Form
+    public partial class PopulationStratifiedSampling : Form
     {
         private readonly Random _random = new Random();
         private const int DefaultCellCountX = 20;
@@ -22,7 +22,7 @@ namespace PopulationStratifiedSampling
         private const int DefaultGlobalPopulationDensity = 25;
         private const double DefaultLocalPopulationDensitySamplingProbability = 0.1;
 
-        public Form1()
+        public PopulationStratifiedSampling()
         {
             InitializeComponent();
         }
@@ -412,18 +412,7 @@ namespace PopulationStratifiedSampling
                         cumulativePopulationDensitiesToCellIndex[populationDensitiesSum] = keyValuePair.Key;
                 }
             }
-
             return cumulativePopulationDensitiesToCellIndex;
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dgvStrata_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
         }
     }
 }
