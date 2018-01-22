@@ -37,10 +37,10 @@ namespace PopulationStratifiedSampling
             return new Tuple<int, int>(index1D / _cellCountY, index1D % _cellCountY);
         }
 
-        private void GetRandomPopulationDensities(out Dictionary<int, int> cellIndexToPopulationDensity,
+        private void GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity,
             out Dictionary<int, int> cellIndexToInfectedCounts)
         {
-            cellIndexToPopulationDensity = new Dictionary<int, int>();
+            cellIndexToPopulationDensity = new List<int>();
             cellIndexToInfectedCounts = new Dictionary<int, int>();
 
             if (!int.TryParse(cmbMaxGlobalPopulationDensity.Text, out int maxGlobalPopulationDensity))
@@ -57,7 +57,8 @@ namespace PopulationStratifiedSampling
                 maxLocalPopulationDensity = DefaultLocalPopulationDensity;
             if (maxLocalPopulationDensitySamplingProbability < 0 || maxLocalPopulationDensitySamplingProbability > 1)
                 maxLocalPopulationDensitySamplingProbability = DefaultLocalPopulationDensitySamplingProbability;
-
+            
+            cellIndexToPopulationDensity.AddRange(Enumerable.Repeat(0, _cellCount)); // Allocate space in population density
             // Get random population densities for a grid
             for (int index = 0; index < _cellCount; index++)
             {
@@ -85,7 +86,7 @@ namespace PopulationStratifiedSampling
             _cellCount = _cellCountX * _cellCountY;
 
             // Get random population densities for a grid
-            GetRandomPopulationDensities(out Dictionary<int, int> cellIndexToPopulationDensity,
+            GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity,
                 out Dictionary<int, int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
@@ -126,7 +127,7 @@ namespace PopulationStratifiedSampling
             tpbProgress.PerformStep();
 
             PrintShowResults(cellIndexToInfectedCounts, _cellCountX, _cellCountY, cellIndexToPopulationDensity,
-                cellIndexToPopulationDensity.Values.Max(), strataBoundingBoxesToSampleCount);
+                cellIndexToPopulationDensity.Max(), strataBoundingBoxesToSampleCount);
             
             watch.Stop();
             tlbExecutionTime.Text = watch.ElapsedMilliseconds.ToString();
@@ -134,8 +135,8 @@ namespace PopulationStratifiedSampling
             tpbProgress.Value = tpbProgress.Maximum;
         }
 
-        private Dictionary<int, int> StratumCellIndexToPopulationDensity(Dictionary<int,
-            int> cellIndexToPopulationDensity, KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum)
+        private Dictionary<int, int> StratumCellIndexToPopulationDensity(List<int> cellIndexToPopulationDensity, 
+            KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum)
         {
             Dictionary<int, int> currentCellIndexToPopulationDensity =
                 new Dictionary<int, int>();
@@ -160,7 +161,7 @@ namespace PopulationStratifiedSampling
             Dictionary<int, int> cellIndexToInfectedCounts,
             Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
             Dictionary<int, int> currentCellIndexToPopulationDensity,
-            Dictionary<int, int> cellIndexToPopulationDensity, int sampleSize)
+            List<int> cellIndexToPopulationDensity, int sampleSize)
         {
             // Progressively accumulate the total population densities in a series -> grid index
             Dictionary<int, int> cumulativePopulationDensitiesToCellIndex =
@@ -250,7 +251,7 @@ namespace PopulationStratifiedSampling
        }
 
         private void PrintShowResults(Dictionary<int, int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
-            Dictionary<int, int> cellIndexToPopulationDensity, int maxPopulationDensity,
+            List<int> cellIndexToPopulationDensity, int maxPopulationDensity,
             Dictionary<Tuple<Tuple<int, int>, Tuple<int, int>>, int> strataBoundingBoxesToSampleCount)
         {
             // Write results to png
