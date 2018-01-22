@@ -115,11 +115,9 @@ namespace PopulationStratifiedSampling
             
             foreach (KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum in strataBoundingBoxesToSampleCount)
             {
-                var currentCellIndexToPopulationDensity = StratumCellIndexToPopulationDensity(cellIndexToPopulationDensity, currentStratum);
-
                 SampleStratifiedPopulation(cellIndexToInfectedCounts,
                     currentStratum.Key,
-                    currentCellIndexToPopulationDensity,
+                    StratumCellIndexToPopulationDensity(cellIndexToPopulationDensity, currentStratum),
                     cellIndexToPopulationDensity,
                     currentStratum.Value);
             }
@@ -138,8 +136,7 @@ namespace PopulationStratifiedSampling
         private Dictionary<int, int> StratumCellIndexToPopulationDensity(List<int> cellIndexToPopulationDensity, 
             KeyValuePair<Tuple<Tuple<int, int>, Tuple<int, int>>, int> currentStratum)
         {
-            Dictionary<int, int> currentCellIndexToPopulationDensity =
-                new Dictionary<int, int>();
+            Dictionary<int, int> currentCellIndexToPopulationDensity = new Dictionary<int, int>();
 
             int minX = currentStratum.Key.Item1.Item1;
             int minY = currentStratum.Key.Item1.Item2;
@@ -157,11 +154,8 @@ namespace PopulationStratifiedSampling
             return currentCellIndexToPopulationDensity;
         }
 
-        private void SampleStratifiedPopulation(
-            List<int> cellIndexToInfectedCounts,
-            Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
-            Dictionary<int, int> currentCellIndexToPopulationDensity,
-            List<int> cellIndexToPopulationDensity, int sampleSize)
+        private void SampleStratifiedPopulation(List<int> cellIndexToInfectedCounts,Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
+            Dictionary<int, int> currentCellIndexToPopulationDensity, List<int> cellIndexToPopulationDensity, int sampleSize)
         {
             // Progressively accumulate the total population densities in a series -> grid index
             Dictionary<int, int> cumulativePopulationDensitiesToCellIndex =
@@ -197,14 +191,7 @@ namespace PopulationStratifiedSampling
 
                     if (populationDensityValueToCellIndex.Count > randomInt)
                     {
-                        int cellIndex = populationDensityValueToCellIndex[randomInt];
-
-                        // if (cellIndexToInfectedCounts.ContainsKey(cellIndex))
-                        //        cellIndexToInfectedCounts[cellIndex]++;
-                        //else
-                        //    cellIndexToInfectedCounts[cellIndex] = 1;
-                        cellIndexToInfectedCounts[cellIndex]++;
-
+                        cellIndexToInfectedCounts[populationDensityValueToCellIndex[randomInt]]++;
                         i++;
                     }
                 }
@@ -241,9 +228,7 @@ namespace PopulationStratifiedSampling
                         txtSamples.AppendText($"[{x}, " + $"{y}]: {currentSamples} samples" +
                                                 $" (Population Density: {cellIndexToPopulationDensity[index]})\r\n");
                     }
-                    
                 }
-
                 txtSamples.AppendText($"\r\nTotal Samples: {sumSamples}");
             }
        }
