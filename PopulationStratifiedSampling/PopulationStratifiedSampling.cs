@@ -38,10 +38,12 @@ namespace PopulationStratifiedSampling
         }
 
         private void GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity,
-            out Dictionary<int, int> cellIndexToInfectedCounts)
+            out List<int> cellIndexToInfectedCounts)
         {
             cellIndexToPopulationDensity = new List<int>();
-            cellIndexToInfectedCounts = new Dictionary<int, int>();
+            cellIndexToInfectedCounts = new List<int>();
+            cellIndexToPopulationDensity.AddRange(Enumerable.Repeat(0, _cellCount)); // Allocate space in population density
+            cellIndexToInfectedCounts.AddRange(Enumerable.Repeat(0, _cellCount)); // Allocate space in cell infected
 
             if (!int.TryParse(cmbMaxGlobalPopulationDensity.Text, out int maxGlobalPopulationDensity))
                 maxGlobalPopulationDensity = DefaultGlobalPopulationDensity;
@@ -58,7 +60,6 @@ namespace PopulationStratifiedSampling
             if (maxLocalPopulationDensitySamplingProbability < 0 || maxLocalPopulationDensitySamplingProbability > 1)
                 maxLocalPopulationDensitySamplingProbability = DefaultLocalPopulationDensitySamplingProbability;
             
-            cellIndexToPopulationDensity.AddRange(Enumerable.Repeat(0, _cellCount)); // Allocate space in population density
             // Get random population densities for a grid
             for (int index = 0; index < _cellCount; index++)
             {
@@ -67,7 +68,6 @@ namespace PopulationStratifiedSampling
                         ? maxLocalPopulationDensity : maxGlobalPopulationDensity);
 
                 cellIndexToPopulationDensity[index] = randomPopulationDensity;
-                cellIndexToInfectedCounts[index] = 0;
             }
         }
 
@@ -87,7 +87,7 @@ namespace PopulationStratifiedSampling
 
             // Get random population densities for a grid
             GetRandomPopulationDensities(out List<int> cellIndexToPopulationDensity,
-                out Dictionary<int, int> cellIndexToInfectedCounts);
+                out List<int> cellIndexToInfectedCounts);
 
             tpbProgress.PerformStep();
 
@@ -158,7 +158,7 @@ namespace PopulationStratifiedSampling
         }
 
         private void SampleStratifiedPopulation(
-            Dictionary<int, int> cellIndexToInfectedCounts,
+            List<int> cellIndexToInfectedCounts,
             Tuple<Tuple<int, int>, Tuple<int, int>> strataBbox,
             Dictionary<int, int> currentCellIndexToPopulationDensity,
             List<int> cellIndexToPopulationDensity, int sampleSize)
@@ -199,10 +199,12 @@ namespace PopulationStratifiedSampling
                     {
                         int cellIndex = populationDensityValueToCellIndex[randomInt];
 
-                        if (cellIndexToInfectedCounts.ContainsKey(cellIndex))
-                            cellIndexToInfectedCounts[cellIndex]++;
-                        else
-                            cellIndexToInfectedCounts[cellIndex] = 1;
+                        // if (cellIndexToInfectedCounts.ContainsKey(cellIndex))
+                        //        cellIndexToInfectedCounts[cellIndex]++;
+                        //else
+                        //    cellIndexToInfectedCounts[cellIndex] = 1;
+                        cellIndexToInfectedCounts[cellIndex]++;
+
                         i++;
                     }
                 }
@@ -214,11 +216,8 @@ namespace PopulationStratifiedSampling
                     int cellIndex = Get1DIndex(new Tuple<int, int>(
                         _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item1),
                         _random.Next(0, Get2DIndex(currentCellIndexToPopulationDensity.Last().Key).Item2)));
-
-                    if (cellIndexToInfectedCounts.ContainsKey(cellIndex))
-                        cellIndexToInfectedCounts[cellIndex]++;
-                    else
-                        cellIndexToInfectedCounts[cellIndex] = 1;
+                    
+                    cellIndexToInfectedCounts[cellIndex]++;
                 }
             }
 
@@ -239,8 +238,7 @@ namespace PopulationStratifiedSampling
                     if (currentSamples > 0 || (x >= minX && x < maxX && y >= minY && y < maxY ))
                     {
                         sumSamples += currentSamples;
-                        txtSamples.AppendText($"[{x}, " +
-                                                $"{y}]: {currentSamples} samples" +
+                        txtSamples.AppendText($"[{x}, " + $"{y}]: {currentSamples} samples" +
                                                 $" (Population Density: {cellIndexToPopulationDensity[index]})\r\n");
                     }
                     
@@ -250,7 +248,7 @@ namespace PopulationStratifiedSampling
             }
        }
 
-        private void PrintShowResults(Dictionary<int, int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
+        private void PrintShowResults(List<int> cellIndexToInfectedCounts, int cellCountX, int cellCountY,
             List<int> cellIndexToPopulationDensity, int maxPopulationDensity,
             Dictionary<Tuple<Tuple<int, int>, Tuple<int, int>>, int> strataBoundingBoxesToSampleCount)
         {
@@ -343,7 +341,7 @@ namespace PopulationStratifiedSampling
                     b.Dispose();
                 }
                 
-                int maxInfectedCounts = cellIndexToInfectedCounts.Values.Max();
+                int maxInfectedCounts = cellIndexToInfectedCounts.Max();
                 using (Bitmap b = new Bitmap(cellCountX, cellCountY))
                 {
                     using (Graphics g = Graphics.FromImage(b))
