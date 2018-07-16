@@ -1,4 +1,4 @@
-#Weighted stratified sampling
+# Weighted stratified sampling
 
 Performs stratified random sampling on specific regions of a grid. Sampling is weighted by an additional layer (i.e population density).
 In our case, the sample values represent spatial-based infected counts (infected hosts), for specific regions (i.e an administrative level) of a grid.
